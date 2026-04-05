@@ -91,7 +91,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-// ── SWAGGER (always on) ──
+// ── SWAGGER ──
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "QuantityMeasurement API v1"));
 
