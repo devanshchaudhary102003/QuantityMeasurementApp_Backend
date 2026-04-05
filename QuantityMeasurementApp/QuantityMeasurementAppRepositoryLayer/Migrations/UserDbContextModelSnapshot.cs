@@ -14,16 +14,14 @@ namespace QuantityMeasurementAppRepositoryLayer.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.4")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
-
-            Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.4");
 
             modelBuilder.Entity("QuantityMeasurementAppModelLayer.Entity.QuantityMeasurementEntity", b =>
             {
-                b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("integer");
-                Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
                 b.Property<string>("Category").IsRequired().HasColumnType("text");
                 b.Property<string>("Operation").IsRequired().HasColumnType("text");
                 b.Property<double>("Result").HasColumnType("double precision");
@@ -39,8 +37,10 @@ namespace QuantityMeasurementAppRepositoryLayer.Migrations
 
             modelBuilder.Entity("QuantityMeasurementAppModelLayer.Entity.UserEntity", b =>
             {
-                b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("integer");
-                Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
                 b.Property<DateTime>("CreatedAt").HasColumnType("timestamp with time zone");
                 b.Property<string>("Email").IsRequired().HasColumnType("text");
                 b.Property<string>("Password").IsRequired().HasColumnType("text");
