@@ -6,7 +6,6 @@ using QuantityMeasurementAppRepositoryLayer.Interface;
 using QuantityMeasurementAppRepositoryLayer.Database;
 using QuantityMeasurementAppBusinessLayer.Interface;
 using QuantityMeasurementAppBusinessLayer.Service;
-using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,24 +23,32 @@ builder.Services.AddScoped<IQuantityMeasurementService, QuantityMeasurementServi
 builder.Services.AddScoped<IAuthService, QuantityMeasurementAuthService>();
 
 // ── SWAGGER ──
-builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Type = SecuritySchemeType.Http,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
         Scheme = "bearer",
         BearerFormat = "JWT",
-        In = ParameterLocation.Header,
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
         Description = "Paste your JWT Token here."
     });
-
-    c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
-        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 
@@ -86,7 +93,6 @@ using (var scope = app.Services.CreateScope())
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// NOTE: No UseHttpsRedirection — Render handles HTTPS externally
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
