@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: quantity-measurement-api
+    runtime: dotnet
+    buildCommand: dotnet publish QuantityMeasurementApp.Api/QuantityMeasurementApp.Api.csproj -c Release -o out
+    startCommand: dotnet out/QuantityMeasurementApp.Api.dll
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Jwt__Key
+        sync: false
+      - key: Jwt__Issuer
+        value: QuantityMeasurementApp.Api
+      - key: Jwt__Audience
+        value: QuantityMeasurementApp.Api
+      - key: Google__ClientId
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
