@@ -5,8 +5,6 @@ using QuantityMeasurementAppModelLayer.Enums;
 using QuantityMeasurementAppModelLayer.Entity;
 using QuantityMeasurementAppRepositoryLayer.Interface;
 using QuantityMeasurementAppRepositoryLayer.Database;
-using Azure.Core.Diagnostics;
-using Microsoft.Identity.Client;
 
 namespace QuantityMeasurementAppBusinessLayer.Service
 {
@@ -83,7 +81,7 @@ namespace QuantityMeasurementAppBusinessLayer.Service
 
             SaveHistory(first, second, "Divide", result, userId);
 
-            return result; // ratio (unitless)
+            return result;
         }
 
         public QuantityDTO Convert(QuantityDTO source, string targetUnit,int userId)
@@ -122,7 +120,6 @@ namespace QuantityMeasurementAppBusinessLayer.Service
 
         private void SaveHistory(QuantityDTO first,QuantityDTO second,string opr,double result,int userId)
         {
-            // userId == 0 means guest — skip saving history
             if (userId == 0) return;
 
             _repository.SaveToDatabase(new QuantityMeasurementEntity
@@ -182,7 +179,6 @@ namespace QuantityMeasurementAppBusinessLayer.Service
             string unit = NormalizeUnit(category, dto.Unit);
 
             return category switch
-            
             {
                 "Length" => Enum.Parse<LengthUnit>(unit) switch
                 {
@@ -282,10 +278,10 @@ namespace QuantityMeasurementAppBusinessLayer.Service
 
             bool isValid = normalizedCategory switch
             {
-                "Length" => Enum.TryParse(unit, true, out LengthUnit lengthUnit),
-                "Weight" => Enum.TryParse(unit, true, out WeightUnit weightUnit),
-                "Volume" => Enum.TryParse(unit, true, out VolumeUnit volumeUnit),
-                "Temperature" => Enum.TryParse(unit, true, out TemperatureUnit temperatureUnit),
+                "Length" => Enum.TryParse(unit, true, out LengthUnit _),
+                "Weight" => Enum.TryParse(unit, true, out WeightUnit _),
+                "Volume" => Enum.TryParse(unit, true, out VolumeUnit _),
+                "Temperature" => Enum.TryParse(unit, true, out TemperatureUnit _),
                 _ => false
             };
 
@@ -313,6 +309,7 @@ namespace QuantityMeasurementAppBusinessLayer.Service
                 _ => "Unknown"
             };
         }
+
         public void DeleteHistory(int userId)
         {
             _repository.DeleteHistory(userId);
@@ -332,6 +329,5 @@ namespace QuantityMeasurementAppBusinessLayer.Service
         {
             return _repository.GetStats(userId);
         }
-
     }
 }

@@ -1,16 +1,15 @@
-using Npgsql;
+using Microsoft.Data.SqlClient;
 
 namespace QuantityMeasurementAppRepositoryLayer.Utils
 {
     public static class DbConnectionFactory
     {
         private static readonly string connectionString =
-            Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-            ?? "Host=localhost;Database=QuantityMeasurementDB;Username=postgres;Password=yourpassword";
+            "Server=localhost\\SQLEXPRESS;Database=QuantityMeasurementDB;Trusted_Connection=True;TrustServerCertificate=True";
 
-        public static NpgsqlConnection CreateConnection()
+        public static SqlConnection CreateConnection()
         {
-            return new NpgsqlConnection(connectionString);
+            return new SqlConnection(connectionString);
         }
     }
 }

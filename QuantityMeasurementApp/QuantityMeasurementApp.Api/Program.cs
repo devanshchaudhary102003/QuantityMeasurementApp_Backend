@@ -6,57 +6,45 @@ using QuantityMeasurementAppRepositoryLayer.Interface;
 using QuantityMeasurementAppRepositoryLayer.Database;
 using QuantityMeasurementAppBusinessLayer.Interface;
 using QuantityMeasurementAppBusinessLayer.Service;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── PORT: Render injects PORT env variable ──
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
-
-// ── DATABASE: PostgreSQL ──
 builder.Services.AddDbContext<UserDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ── DEPENDENCY INJECTION ──
-builder.Services.AddScoped<IQuantityMeasurementRepository, QuantityMeasurementRepository>();
-builder.Services.AddScoped<IQuantityMeasurementService, QuantityMeasurementService>();
-builder.Services.AddScoped<IAuthService, QuantityMeasurementAuthService>();
+// Add services to the container.
+//Repo
+builder.Services.AddScoped<IQuantityMeasurementRepository,QuantityMeasurementRepository>();
+//Service
+builder.Services.AddScoped<IQuantityMeasurementService,QuantityMeasurementService>();
+// builder.Services.AddScoped<IQuantityMeasurementService,QuantityMeasurementService>();
+builder.Services.AddScoped<IAuthService,QuantityMeasurementAuthService>();
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
-// ── SWAGGER ──
+builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "QuantityMeasurement API", Version = "v1" });
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
+        Scheme = "bearer", 
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
         Description = "Paste your JWT Token here."
     });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+
+    c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
 });
-
-// ── JWT AUTH ──
-var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new Exception("Jwt:Key is not configured");
-builder.Services.AddAuthentication("Bearer").AddJwtBearer("Bearer", options =>
+builder.Services.AddAuthentication("Bearer").AddJwtBearer("Bearer",options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -64,40 +52,37 @@ builder.Services.AddAuthentication("Bearer").AddJwtBearer("Bearer", options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+
+        ValidIssuer = "QuantityMeasurementApp.Api",
+        ValidAudience = "QuantityMeasurementApp.Api",
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("THIS_IS_A_SUPER_SECRET_KEY_1234567890"))
     };
 });
 builder.Services.AddAuthorization();
 
-// ── CORS ──
-var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:3000";
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        policy => policy
-            .WithOrigins(frontendUrl)
-            .AllowAnyHeader()
-            .AllowAnyMethod());
+    options.AddPolicy("AllowAll",
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
 });
 
 var app = builder.Build();
 
-// ── AUTO MIGRATE ON STARTUP ──
-using (var scope = app.Services.CreateScope())
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
 {
-    var db = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-    db.Database.Migrate();
+    // app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-// ── SWAGGER ──
-app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "QuantityMeasurement API v1"));
-
-app.UseCors("AllowFrontend");
-app.UseAuthentication();
+app.UseHttpsRedirection();
+app.UseCors("AllowAll"); 
+app.UseAuthentication();   
 app.UseAuthorization();
 app.MapControllers();
+
 
 app.Run();
